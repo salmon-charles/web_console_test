@@ -1,0 +1,135 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+  <title>WebSocket console</title>
+  <style>
+  </style>
+ 
+ <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+    onerror = function (msg) {
+      log(msg);
+    }
+    function log(msg) {
+      document.getElementById('log').appendChild(document.createTextNode(new Date() + '   ' + msg + '\n'));
+    }
+    function status(msg) {
+      log(msg);
+      document.getElementById('status').textContent = msg;
+    }
+    
+    function clearLog() {
+        var e = document.getElementById('log');
+        while (e.hasChildNodes()) {
+            e.removeChild(e.firstChild);
+        }
+        e.appendChild(document.createTextNode('Log: \n'));
+    }
+    
+  </script>
+  
+  <script>
+   var socket = null;
+   function connect() {
+     log('Connecting to local server...');
+     if (socket == null) {
+         socket = io.connect(null,{'auto connect': false});
+         socket.on('connect', function () {
+            status('Connected');
+            document.getElementById('btn-connect').style.display = "none";
+            document.getElementById('btn-disconnect').style.display = "inline";
+         });
+         
+         socket.on('disconnect', function () {
+            status('Disconnected');
+            document.getElementById('btn-disconnect').style.display = "none";
+            document.getElementById('btn-connect').style.display = "inline";
+         });
+         
+         socket.on('message', function (data) {
+            log(data);
+         });
+     }
+     
+     socket.socket.connect();
+     socket.emit('my other event', { my: 'data' });
+
+   }
+   function disconnect() {
+     if (socket) {
+       log('Disconnecting...');
+       socket.disconnect();
+     } else {
+       log('Not connected.');
+     }
+   }
+   function send() {
+     if (socket && socket.socket.connected) {
+       socket.send(document.getElementById('text').value);
+       log('>' + document.getElementById('text').value);
+     } else {
+       log('Not connected.');
+     }
+   }
+   
+   function cmd() {
+     if (socket && socket.socket.connected) {
+       socket.emit("cmd",{cmd:document.getElementById('cmd').value,options:null});
+       log('>' + document.getElementById('cmd').value);
+     } else {
+       log('Not connected.');
+     }
+   }
+   
+   function send100() {
+     if (socket && socket.socket.connected) {
+       for (var i = 0; i < 100; i += 1) {
+         socket.send('test'+ i);
+         log('> test' + i);
+       }
+     } else {
+       log('Not connected.');
+     }
+   }
+   function update() {
+     if (socket && socket.socket && socket.socket.transport) {
+       document.getElementById('sessionId').textContent = socket.socket.transport.sessid;
+       document.getElementById('transport').textContent = socket.socket.transport.name;
+     } else {
+       document.getElementById('sessionId').textContent = '-';
+       document.getElementById('transport').textContent = '-';
+     }
+   }
+   setInterval(update, 10);
+  </script>
+ </head>
+
+ <body onload="connect()">
+  <p>
+    <label style='width:200px;float:left'>Status: <span id="status">Idle</span></label>
+   <input type=button value="Connect" id="btn-connect" onclick="connect()">
+   <input type=button value="Disconnect" style='display:none' id="btn-disconnect" onclick="disconnect()">  
+  </p>
+  <p>SessionId: <span id="sessionId">-</span></p>
+  <p>Transport: <span id="transport">-</span></p>
+  
+  <p>
+   <label>Message: <input id="text" type="text" size="80" value=""/></label>
+   <input type=button value="Echo" onclick="send()">
+  </p>
+
+  <p>
+   <input type=button value="Spam 100 packets" onclick="send100()" />
+   <input type=button value="Clear log" onclick="clearLog()" />
+  </p>
+  
+  <p>
+   <label>Command: <input id="cmd" type="text" size="80" value=""/></label>
+   <input type=button value="Send" onclick="cmd()">
+  </p>
+  
+  <pre id="log">Log:
+</pre>
+ </body>
+</html>
