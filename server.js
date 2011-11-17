@@ -2,7 +2,12 @@ var app = require('express').createServer(),
     io = require('socket.io').listen(app),
     spawn = require('child_process').spawn;
 
-app.listen(process.env.C9_PORT);
+try {
+    app.listen(process.env.C9_PORT);
+} catch(err) {
+    // Production
+    app.listen(80);   
+}
 
 app.get('/', function (req, res) {
   res.sendfile(__dirname + '/index.html');
