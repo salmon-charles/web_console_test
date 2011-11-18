@@ -2,15 +2,17 @@ var app = require('express').createServer(),
     io = require('socket.io').listen(app),
     spawn = require('child_process').spawn;
 
+var port = 80;
+if (process && process.env && process.env.C9_PORT) {
+    port = process.env.C9_PORT;
+}
 try {
-    app.listen(process.env.C9_PORT);
+    app.listen(port);
 } catch(err) {
-    // Production
-    app.listen(80);   
+    console.error(err);  
 }
 
 app.get('/', function (req, res) {
-    
   res.sendfile('index.html');
 });
 
