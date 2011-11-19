@@ -1,6 +1,7 @@
 var app = require('http').createServer(handler)
   , io = require('socket.io').listen(app)
   , fs = require('fs')
+  , spawn = require('child_process').spawn;
 
 
 var port = process.env.PORT || 8001;
